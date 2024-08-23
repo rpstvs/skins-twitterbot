@@ -1,16 +1,25 @@
 import { twitterClient } from "./twitterClient";
-import { fetchItems } from "./getItems";
-import axios from "axios";
+import { fetchBestItems, fetchWorstItems } from "./getItems";
 
-const tweetTransfers = async () => {
-  const items = await fetchItems();
-  console.log(items);
-
+const tweetItems = async () => {
+  const bestItems = await fetchBestItems();
+  const WorstItems = await fetchWorstItems();
   let payload;
-  for (const item of items) {
+
+  for (const item of bestItems) {
     payload = `
-  🔫: $${item.itemname}
-  💵: ${item.price}
+  🔫: ${item.itemname}
+  💵: $${item.price}
+  📈24h change: ${item.daychange}%`;
+    await twitterClient.v2.tweet(payload);
+    await sleep(60000);
+  }
+
+  payload = ``;
+  for (const item of WorstItems) {
+    payload = `
+  🔫: ${item.itemname}
+  💵: $${item.price}
   📈24h change: ${item.daychange}%`;
     await twitterClient.v2.tweet(payload);
     await sleep(60000);
@@ -24,4 +33,4 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-tweetTransfers();
+tweetItems();
