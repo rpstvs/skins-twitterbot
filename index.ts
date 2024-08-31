@@ -1,5 +1,6 @@
 import { twitterClient } from "./twitterClient";
 import { fetchBestItems, fetchWorstItems } from "./getItems";
+import { uploadImage } from "./imageUpload";
 
 const TweetBestItems = async () => {
   let bestItems = await fetchBestItems();
@@ -10,12 +11,20 @@ const TweetBestItems = async () => {
       bestItems = await fetchBestItems();
     }
 
+    let media_ids = await uploadImage(item.imageurl);
+
+    if (!media_ids) {
+      throw new Error("Failed to upload image: mediaId is undefined");
+    }
+
     payload = `
   🔫: ${item.itemname}
   💵: $${item.price}
   📈24h change: ${item.daychange}%
   #CS2Skins #CS2Trading #CS2Investing`;
-    await twitterClient.v2.tweet(payload);
+    await twitterClient.v2.tweet(payload, {
+      media: { media_ids: [media_ids] },
+    });
     await sleep(60000);
   }
 };
@@ -28,12 +37,20 @@ const TweetWorstItems = async () => {
     if (item.price === 0) {
       WorstItems = await fetchWorstItems();
     }
+    let media_ids = await uploadImage(item.imageurl);
+
+    if (!media_ids) {
+      throw new Error("Failed to upload image: mediaId is undefined");
+    }
+
     payload = `
   🔫: ${item.itemname}
   💵: $${item.price}
   📈24h change: ${item.daychange}%
   #CS2Skins #CS2Trading #CS2Investing`;
-    await twitterClient.v2.tweet(payload);
+    await twitterClient.v2.tweet(payload, {
+      media: { media_ids: [media_ids] },
+    });
 
     console.log(`skin:${item.itemname}
       Price: $${item.price}
