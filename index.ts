@@ -1,14 +1,19 @@
 import { twitterClient } from "./twitterClient";
-import { fetchBestItems, fetchWorstItems } from "./getItems";
+import { fetchBestItemsDay, fetchWorstItemsDay } from "./getItems";
 import { uploadImage } from "./imageUpload";
 
+async function Tweet() {
+  await TweetBestItems();
+  await TweetWorstItems();
+}
+
 const TweetBestItems = async () => {
-  let bestItems = await fetchBestItems();
+  let bestItems = await fetchBestItemsDay();
   let payload;
 
   for (const item of bestItems) {
     if (item.price === 0) {
-      bestItems = await fetchBestItems();
+      bestItems = await fetchBestItemsDay();
     }
 
     let media_ids = await uploadImage(item.imageurl);
@@ -30,12 +35,12 @@ const TweetBestItems = async () => {
 };
 
 const TweetWorstItems = async () => {
-  let WorstItems = await fetchWorstItems();
+  let WorstItems = await fetchWorstItemsDay();
   let payload;
 
   for (const item of WorstItems) {
     if (item.price === 0) {
-      WorstItems = await fetchWorstItems();
+      WorstItems = await fetchWorstItemsDay();
     }
     let media_ids = await uploadImage(item.imageurl);
 
@@ -66,5 +71,4 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-TweetBestItems();
-TweetWorstItems();
+Tweet();
