@@ -1,18 +1,14 @@
 import { twitterClient } from "./twitterClient";
-import { fetchBestItemsWeek } from "./getItems";
+import { fetchBestItemsDay, fetchWorstItemsDay } from "./getItems";
 import { uploadImage } from "./imageUpload";
 
-async function Tweet() {
-  await TweetBestItemsWeek();
-}
-
-const TweetBestItemsWeek = async () => {
-  let bestItems = await fetchBestItemsWeek();
+export const TweetBestItemsDay = async () => {
+  let bestItems = await fetchBestItemsDay();
   let payload;
 
   for (const item of bestItems) {
     if (item.price === 0) {
-      continue;
+      bestItems = await fetchBestItemsDay();
     }
 
     let media_ids = await uploadImage(item.imageurl);
@@ -22,14 +18,44 @@ const TweetBestItemsWeek = async () => {
     }
 
     payload = `
-  BEST Performance of the Week:  
-  🔫: ${item.itemname}
-  💵: $${item.price}
-  📈7Day Change: ${item.weekchange}%
-  #CS2Skins #CS2Trading #CS2Investing`;
+    🔫: ${item.itemname}
+    💵: $${item.price}
+    📈24h change: ${item.daychange}%
+    #CS2Skins #CS2Trading #CS2Investing`;
     await twitterClient.v2.tweet(payload, {
       media: { media_ids: [media_ids] },
     });
+    await sleep(60000);
+  }
+};
+
+export const TweetWorstItemsDay = async () => {
+  let WorstItems = await fetchWorstItemsDay();
+  let payload;
+
+  for (const item of WorstItems) {
+    if (item.price === 0) {
+      WorstItems = await fetchWorstItemsDay();
+    }
+    let media_ids = await uploadImage(item.imageurl);
+
+    if (!media_ids) {
+      throw new Error("Failed to upload image: mediaId is undefined");
+    }
+
+    payload = `
+    🔫: ${item.itemname}
+    💵: $${item.price}
+    📈24h change: ${item.daychange}%
+    #CS2Skins #CS2Trading #CS2Investing`;
+    await twitterClient.v2.tweet(payload, {
+      media: { media_ids: [media_ids] },
+    });
+
+    console.log(`skin:${item.itemname}
+        Price: $${item.price}
+        24h change: ${item.daychange}%
+        #CS2Skins #CS2Trading #CS2Investing`);
     await sleep(60000);
   }
 };
@@ -39,5 +65,3 @@ function sleep(ms: number): Promise<void> {
     setTimeout(resolve, ms);
   });
 }
-
-Tweet();
